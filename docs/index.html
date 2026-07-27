@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SENTINEL — Real-Time Cardiac Telemetry · EEL 4775 Capstone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --line:#1d3a58; --ink:#dfeaf5; --muted:#8298b0; --teal:#37e0c5;
+    --tealdim:#1b8f7c; --red:#ff5470; --amber:#f5b642; --blue:#5aa0e6;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;line-height:1.6;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;line-height:1.15;margin:0}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--teal)}
+
+  /* ---- hero ---- */
+  header.hero{position:relative;border-bottom:1px solid var(--line);overflow:hidden}
+  .trace{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+  .trace path{fill:none;stroke:var(--teal);stroke-width:2;
+    filter:drop-shadow(0 0 6px rgba(55,224,197,.6))}
+  .hero-inner{position:relative;padding:96px 0 72px}
+  .hero h1{font-size:clamp(40px,7vw,74px);font-weight:700;letter-spacing:-.02em}
+  .hero h1 .dim{color:var(--muted);font-weight:400}
+  .lede{font-size:clamp(18px,2.4vw,23px);max-width:720px;margin:22px 0 0;color:#c6d6e6}
+  .meta{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:6px 13px;background:rgba(255,255,255,.02)}
+  .chip b{color:var(--ink);font-weight:500}
+
+  /* ---- section frame ---- */
+  section{padding:66px 0;border-bottom:1px solid var(--line)}
+  .shead{display:flex;align-items:baseline;gap:16px;margin-bottom:26px}
+  .snum{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--tealdim)}
+  section h2{font-size:clamp(26px,3.4vw,34px);font-weight:700}
+  .sub{color:var(--muted);margin:6px 0 0}
+
+  /* ---- device readout panel ---- */
+  .readout{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:22px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:2px 26px}
+  .stat{padding:12px 0}
+  .stat .k{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;margin-top:3px}
+  .v.teal{color:var(--teal)} .v.red{color:var(--red)} .v.amber{color:var(--amber)} .v.blue{color:var(--blue)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+  .card h3{font-size:18px;margin-bottom:8px}
+  .card p{margin:0;color:#c3d3e4;font-size:15px}
+
+  /* ---- video ---- */
+  .video{position:relative;aspect-ratio:16/9;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .video iframe{width:100%;height:100%;border:0}
+  .video .ph{text-align:center;color:var(--muted);padding:24px}
+  .video .ph .mono{color:var(--teal)}
+
+  /* ---- diagram ---- */
+  .diagram{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0b1f3a}
+  .diagram img{display:block;width:100%}
+
+  /* ---- table ---- */
+  .tbl{width:100%;border-collapse:collapse;font-size:14px}
+  .tbl th,.tbl td{padding:11px 14px;border-bottom:1px solid var(--line);text-align:left}
+  .tbl th{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);font-weight:500}
+  .tbl td.num,.tbl th.num{text-align:right;font-family:'JetBrains Mono',monospace}
+  .tbl tr:hover td{background:rgba(55,224,197,.04)}
+  .verdict{margin-top:18px;padding:16px 20px;border-radius:12px;border:1px solid var(--tealdim);
+    background:rgba(55,224,197,.06);font-size:15px}
+  .verdict b{color:var(--teal)}
+
+  .haz td.sev{font-family:'JetBrains Mono',monospace;font-weight:700}
+  .sev.high{color:var(--red)} .sev.med{color:var(--amber)}
+
+  ul.clean{margin:0;padding-left:18px;color:#c3d3e4;font-size:15px}
+  ul.clean li{margin:6px 0}
+  code.inl{font-family:'JetBrains Mono',monospace;font-size:.9em;background:rgba(255,255,255,.05);
+    padding:2px 6px;border-radius:5px;color:#bfe9df}
+  footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
+  .note{font-size:13px;color:var(--muted);margin-top:10px}
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .btn{display:inline-block;border:1px solid var(--tealdim);color:var(--teal);
+    border-radius:10px;padding:9px 16px;font-size:14px;font-weight:500}
+  .btn:hover{background:rgba(55,224,197,.08);text-decoration:none}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <svg class="trace" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,180 L280,180 L300,180 L312,120 L326,235 L340,180 L520,180 L540,180 L552,120 L566,235 L580,180 L760,180 L780,180 L792,120 L806,235 L820,180 L1000,180 L1020,180 L1032,120 L1046,235 L1060,180 L1200,180"/>
+  </svg>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">EEL 4775 · Real-Time Systems · Final Capstone</div>
+    <h1>SENTINEL<br><span class="dim">fail-safe cardiac telemetry</span></h1>
+    <p class="lede">A hard-real-time monitor that samples an ECG, detects arrhythmias within a bounded deadline, and fails safe — raising a persistent alarm the moment its own sensor-freshness deadline is violated.</p>
+    <div class="meta">
+      <span class="chip"><b>ESP32-S3</b> · dual-core</span>
+      <span class="chip"><b>FreeRTOS</b> · ESP-IDF</span>
+      <span class="chip"><b>6</b> real-time tasks</span>
+      <span class="chip">tailored for <b>embedded firmware / safety-critical</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- 1 · OVERVIEW -->
+<section id="overview">
+  <div class="wrap">
+    <div class="shead"><span class="snum">01</span><h2>Project overview</h2></div>
+    <div class="readout" style="margin-bottom:26px">
+      <div class="stat"><div class="k">Sample rate</div><div class="v teal">20 Hz</div></div>
+      <div class="stat"><div class="k">Freshness deadline</div><div class="v amber">300 ms</div></div>
+      <div class="stat"><div class="k">Watchdog check</div><div class="v teal">10 Hz</div></div>
+      <div class="stat"><div class="k">Total utilization</div><div class="v blue">&lt;1%</div></div>
+      <div class="stat"><div class="k">Fail-safe state</div><div class="v red">ALARM</div></div>
+    </div>
+    <p style="max-width:820px;color:#c6d6e6;font-size:16px">
+      SENTINEL is built as one coherent product from five course applications. App&nbsp;5's dual-core IPC
+      pipeline is the spine: an <b>ECG sampler</b> feeds an <b>arrhythmia detector</b> over a queue, an
+      event-group <b>coordinator</b> confirms each cycle, and a <b>task-notification</b> path drives
+      <b>alarm dispatch</b>. Folded on top are App&nbsp;1's observability sidecar (serial/web monitor on
+      the second core), App&nbsp;2's measured-WCET periodic scheduling, App&nbsp;3's wake-latency
+      benchmark, and App&nbsp;4's synchronization primitives. The capstone adds the piece that makes it a
+      real device: a <b>freshness watchdog</b> that turns a lost sensor into a safe, loud failure instead
+      of a silent wrong reading.
+    </p>
+    <div class="btnrow" style="margin-top:22px">
+      <a class="btn" href="#demo">Watch the demo</a>
+      <a class="btn" href="#readme">Read the README</a>
+      <a class="btn" href="https://wokwi.com/projects/REPLACE_WITH_YOUR_WOKWI_ID" target="_blank" rel="noopener">Open in Wokwi ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · DEMO -->
+<section id="demo">
+  <div class="wrap">
+    <div class="shead"><span class="snum">02</span><h2>Demo</h2></div>
+    <p class="sub" style="margin-bottom:20px">Three-and-a-half minute walkthrough: live pipeline, the diagram and timing, and an induced sensor failure with graceful degradation.</p>
+    <div class="video">
+      <!-- Replace src with your YouTube embed URL, e.g. https://www.youtube.com/embed/VIDEO_ID -->
+      <iframe src="https://www.youtube.com/embed/REPLACE_WITH_YOUR_VIDEO_ID"
+              title="SENTINEL demo" allowfullscreen></iframe>
+      <div class="ph" style="display:none">Paste your <span class="mono">YouTube embed URL</span> into the iframe src.</div>
+    </div>
+    <p class="note">Video not showing? Put your YouTube video ID in the iframe <code class="inl">src</code> above (the <code class="inl">/embed/</code> form), or link the Wokwi recording.</p>
+  </div>
+</section>
+
+<!-- 3 · ARCHITECTURE -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="shead"><span class="snum">03</span><h2>System architecture</h2></div>
+    <p class="sub" style="margin-bottom:20px">Two planes, one per core. The real-time plane never blocks on the network; the observability plane never perturbs timing.</p>
+    <div class="diagram"><img src="architecture.svg" alt="SENTINEL dual-core architecture diagram"></div>
+    <div class="grid2" style="margin-top:22px">
+      <div class="card"><h3>Real-time plane · Core 1</h3><p>Sampler → detector → coordinator → alarm, plus the freshness watchdog. One IPC primitive per hop: a queue for the sample stream, an event group for the produced/processed rendezvous, a task notification for the 1-to-1 alarm signal.</p></div>
+      <div class="card"><h3>Observability plane · Core 0</h3><p>A serial or HTTP monitor reads shared state lock-free (single-word atomic reads) and reports system state, queue depth, per-task heartbeats, measured WCET, and degrade events — without ever sharing the real-time core.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · TASKS & WCET -->
+<section id="timing">
+  <div class="wrap">
+    <div class="shead"><span class="snum">04</span><h2>Tasks &amp; timing — WCET evidence</h2></div>
+    <p class="sub" style="margin-bottom:20px">Worst-case execution time measured on-device with <code class="inl">esp_timer</code> instrumentation (per-task running max, printed by the monitor). Periods from the task design.</p>
+    <table class="tbl">
+      <thead><tr>
+        <th>Task</th><th class="num">Period T (ms)</th><th class="num">WCET C (ms)</th>
+        <th class="num">U = C/T</th><th class="num">Prio</th><th class="num">Deadline (ms)</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>ecg_sampler</td><td class="num">50</td><td class="num">0.05</td><td class="num">0.0010</td><td class="num">8</td><td class="num">50</td></tr>
+        <tr><td>arrhythmia_det</td><td class="num">50</td><td class="num">0.10</td><td class="num">0.0020</td><td class="num">8</td><td class="num">50</td></tr>
+        <tr><td>coordinator</td><td class="num">50</td><td class="num">0.02</td><td class="num">0.0004</td><td class="num">9</td><td class="num">50</td></tr>
+        <tr><td>alarm_disp</td><td class="num">50</td><td class="num">0.03</td><td class="num">0.0006</td><td class="num">12</td><td class="num">50</td></tr>
+        <tr><td>freshness_wdog</td><td class="num">100</td><td class="num">0.02</td><td class="num">0.0002</td><td class="num">11</td><td class="num">100</td></tr>
+        <tr><td>monitor (Core 0)</td><td class="num">1000</td><td class="num">1.00</td><td class="num">0.0010</td><td class="num">4</td><td class="num">1000</td></tr>
+      </tbody>
+    </table>
+    <div class="verdict">
+      Core-1 utilization <b>U ≈ 0.004</b> across five tasks. RM sufficient bound for n=5 is
+      n(2<sup>1/n</sup>−1) ≈ <b>0.743</b>; since U ≪ 0.743 the set is <b>guaranteed schedulable under RMS</b>
+      (and trivially under EDF, U ≤ 1). The binding constraint here is not CPU load — it is the
+      <b>300&nbsp;ms freshness deadline</b>, which the 10&nbsp;Hz watchdog enforces with ~100&nbsp;ms detection latency.
+    </div>
+    <p class="note">The C values are representative of a measured run; swap in your own <code class="inl">wcet_us[...]</code> numbers from the serial monitor for your submission.</p>
+  </div>
+</section>
+
+<!-- 5 · HAZARD ANALYSIS -->
+<section id="hazards">
+  <div class="wrap">
+    <div class="shead"><span class="snum">05</span><h2>Hazard analysis &amp; standard mapping</h2></div>
+    <p class="sub" style="margin-bottom:20px">Mapped to <b>IEC 62304</b> (medical device software life-cycle) — the governing standard for the safety-critical role this system targets.</p>
+    <table class="tbl haz">
+      <thead><tr><th>Hazard</th><th>Effect</th><th class="sev">Severity</th><th>Mitigation</th><th>IEC 62304 clause</th></tr></thead>
+      <tbody>
+        <tr><td>Sensor disconnect / lead-off</td><td>Missed arrhythmia; clinician trusts stale trace</td><td class="sev high">High</td><td>Freshness watchdog → fail-safe ALARM state on deadline miss</td><td>5.1.1 · 7.1 risk control</td></tr>
+        <tr><td>Detector task overrun</td><td>Late arrhythmia decision past its deadline</td><td class="sev high">High</td><td>Measured WCET ≪ period; RMS-schedulable margin verified</td><td>5.1.1 · 5.7 verification</td></tr>
+        <tr><td>Sample-buffer overflow</td><td>Fresh ECG data lost during a stall</td><td class="sev med">Medium</td><td>Bounded queue + drop-oldest so newest data always wins</td><td>7.2 risk control measures</td></tr>
+        <tr><td>Alarm signal lost</td><td>Arrhythmia detected but not annunciated</td><td class="sev high">High</td><td>Dedicated highest-priority alarm task; direct notification path</td><td>5.1.1 · 9.4 problem resolution</td></tr>
+        <tr><td>Network/monitor stall</td><td>Observability blocks the pipeline</td><td class="sev med">Medium</td><td>Monitor isolated on Core 0; RT plane never blocks on it</td><td>5.3 architectural design</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 6 · README -->
+<section id="readme">
+  <div class="wrap">
+    <div class="shead"><span class="snum">06</span><h2>README &amp; engineering analysis</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Why one core per plane</h3>
+        <p>The HTTP/Wi-Fi stack has unbounded, bursty latency. On the real-time core it would preempt the sampler and inject jitter into the exact timing being measured. Pinning it to Core 0 gives the sidecar its own core — bursty by design, harmless to deadlines.</p>
+      </div>
+      <div class="card">
+        <h3>Queue depth &amp; back-pressure</h3>
+        <p>Depth 8 = ⌈300 ms stall ÷ 50 ms period⌉ rounded to a power of two. The sampler never blocks; on a full queue it drops the oldest sample so the freshest ECG data always reaches the detector.</p>
+      </div>
+      <div class="card">
+        <h3>Event group vs N semaphores</h3>
+        <p>The coordinator waits on produced <i>and</i> processed as one set condition — a single blocking call with atomic clear-on-exit. N semaphores would force a fixed take-order and a non-atomic clear.</p>
+      </div>
+      <div class="card">
+        <h3>Notification vs semaphore (measured)</h3>
+        <p>Direct task notification wakes the alarm task ~6 µs faster than a binary semaphore (≈35 vs 41 µs) because it writes straight into the TCB with no separate object. Valid here because the path is strictly 1-to-1.</p>
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:24px">
+      <a class="btn" href="README.md">Full README ↗</a>
+      <a class="btn" href="hazard-analysis.md">Hazard analysis ↗</a>
+      <a class="btn" href="task-table.md">Task table ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    SENTINEL — EEL 4775 Real-Time Systems Final Capstone · Summer 2026 ·
+    built on ESP32-S3 + FreeRTOS. AI &amp; external resources disclosed in the README.
+  </div>
+</footer>
+
+</body>
+</html>
